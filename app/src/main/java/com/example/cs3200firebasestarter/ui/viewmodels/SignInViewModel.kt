@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
+import com.example.cs3200firebasestarter.ui.repositories.SignInException
 import com.example.cs3200firebasestarter.ui.repositories.UserRepository
 
 class SignInScreenState {
@@ -13,13 +14,13 @@ class SignInScreenState {
     var emailError by mutableStateOf(false)
     var passwordError by mutableStateOf(false)
     var errorMessage by mutableStateOf("")
+    var loginSuccess by mutableStateOf(false)
 }
 
 class SignInViewModel(application: Application): AndroidViewModel(application) {
     val uiState = SignInScreenState()
 
     suspend fun signIn() {
-        // clear existing errors
         uiState.emailError = false
         uiState.passwordError = false
         uiState.errorMessage = ""
@@ -34,6 +35,12 @@ class SignInViewModel(application: Application): AndroidViewModel(application) {
             uiState.errorMessage = "Password cannot be blank."
             return
         }
-        UserRepository.loginUser(uiState.email, uiState.password)
+        try {
+            UserRepository.loginUser(uiState.email, uiState.password)
+            uiState.loginSuccess = true
+        }
+        catch (e: SignInException){
+            uiState.errorMessage = e.message ?: "Error, Try Again"
+        }
     }
 }

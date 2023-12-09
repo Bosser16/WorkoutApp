@@ -24,11 +24,6 @@ fun LaunchScreen(navHostController: NavHostController) {
                 textAlign = TextAlign.Center
             )
             Text(
-                text = "We guarantee this is best app you will ever use!",
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-            Text(
                 text = "Before you continue you will need to create an account",
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center

@@ -7,15 +7,15 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.*
-import com.example.cs3200firebasestarter.ui.repositories.UserRepository
+import androidx.navigation.navArgument
 import com.example.cs3200firebasestarter.ui.screens.*
+import com.example.cs3200firebasestarter.ui.viewmodels.RootNavigationViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,20 +26,35 @@ fun RootNavigation() {
     val currentDestination = navBackStackEntry?.destination
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    LaunchedEffect(true) {
+    val viewModel: RootNavigationViewModel = viewModel()
 
-    }
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
-                Text("Drawer title", modifier = Modifier.padding(16.dp))
+                NavigationDrawerItem(
+                    label = { Text(text = "All Characters") },
+                    selected = false,
+                    onClick = {
+                        viewModel.signUserOut()
+                        navController.navigate(Routes.home.route) {
+                            popUpTo(navController.graph.id) {
+                                inclusive = true
+                            }
+                        }
+                        scope.launch {
+                            drawerState.apply {
+                                close()
+                            }
+                        }
+                    }
+                )
                 Divider()
                 NavigationDrawerItem(
                     label = { Text(text = "Logout") },
                     selected = false,
                     onClick = {
-                        UserRepository.logout()
+                        viewModel.signUserOut()
                         navController.navigate(Routes.launchNavigation.route) {
                             popUpTo(navController.graph.id) {
                                 inclusive = true
@@ -52,7 +67,6 @@ fun RootNavigation() {
                         }
                     }
                 )
-                // ...other drawer items
             }
         }
     ) {
@@ -77,14 +91,17 @@ fun RootNavigation() {
             },
             floatingActionButton = {
                 if (currentDestination?.hierarchy?.none { it.route == Routes.launchNavigation.route || it.route == Routes.splashScreen.route } == true){
-                    FloatingActionButton(onClick = {}) {
+                    FloatingActionButton(onClick = {
+                        scope.launch {
+                            navController.navigate(Routes.create.route)
+                        }
+                    }) {
                         Icon(imageVector = Icons.Default.Add, contentDescription = "Add Item")
                     }
                 }
             },
 
         ) {
-
             NavHost(
                 navController = navController,
                 startDestination = Routes.splashScreen.route,
@@ -97,6 +114,11 @@ fun RootNavigation() {
                 }
                 navigation(route = Routes.appNavigation.route, startDestination = Routes.home.route) {
                     composable(route = Routes.home.route) { HomeScreen(navController) }
+                    composable(route = Routes.create.route) { CharacterCreation(navController) }
+                    composable(route = "editcharacter?id={id}", arguments = listOf(navArgument("id"){defaultValue="new"})){
+                        navBackStackEntry ->
+                        CharacterCreation(navController, navBackStackEntry.arguments?.get("id").toString())
+                    }
                 }
                 composable(route = Routes.splashScreen.route) { SplashScreen(navController) }
             }

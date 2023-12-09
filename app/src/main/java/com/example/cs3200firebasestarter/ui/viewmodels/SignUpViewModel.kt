@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
+import com.example.cs3200firebasestarter.ui.repositories.SignUpException
 import com.example.cs3200firebasestarter.ui.repositories.UserRepository
 
 class SignUpScreenState {
@@ -23,7 +24,6 @@ class SignUpViewModel(application: Application): AndroidViewModel(application) {
     val uiState = SignUpScreenState()
 
     suspend fun signUp() {
-        // clear existing errors
         uiState.emailError = false
         uiState.emailConfirmationError = false
         uiState.passwordError = false
@@ -53,7 +53,11 @@ class SignUpViewModel(application: Application): AndroidViewModel(application) {
             uiState.errorMessage = "Passwords do not match."
             return
         }
-
-        UserRepository.createUser(uiState.email, uiState.password)
+        try {
+            UserRepository.createUser(uiState.email, uiState.password)
+        }
+        catch (e: SignUpException){
+            uiState.errorMessage = e.message ?: "Error, Try Again"
+        }
     }
 }
